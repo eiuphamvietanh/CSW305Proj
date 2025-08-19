@@ -1,0 +1,6 @@
+@CSW305Proj_HostAddress = http://localhost:5073
+
+GET {{CSW305Proj_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
