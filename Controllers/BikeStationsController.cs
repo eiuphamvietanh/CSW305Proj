@@ -18,9 +18,34 @@ namespace CSW305Proj.Controllers
             _context = context;
         }
         [HttpGet]
-        public async Task<List<BikeStation>> GetAllStations () {
-            return await _context.BikeStations.ToListAsync();
-       }
+        public async Task<List<BikeStationDtoResult>> GetAllStations () {
+            var stations = await _context.BikeStations.Include(s => s.Bikes).Select(s => new BikeStationDtoResult
+            {
+                StationId = s.StationId,
+                StationName = s.StationName,
+                Location = s.Location,
+                Capacity = s.Capacity,
+                IsActived = s.IsActived,
+                Bikes = s.Bikes.Select(b => new BikeDtoResult
+                {
+                    BikeId = b.BikeId,
+                    BikeCode = b.BikeCode,
+                    BikeName = b.BikeName,
+                    Model = b.Model,
+                    Price = b.Price,
+                    Status = b.Status,
+                    CreatedDate = b.CreatedDate,
+                    UpdatedDate = b.UpdatedDate,
+                    BikeCategory = new BikeCategoryDtos
+                    {
+                        BikeCategoryName = b.BikeCategory.BikeCategoryName,
+                        Description = b.BikeCategory.Description,
+                        IsActived = b.BikeCategory.IsActived
+                    }
+                }).ToList()
+            }).ToListAsync();
+            return stations;
+        }
         [HttpGet("{id}")]
         public async Task<ActionResult<BikeStation>> GetStationById(int id)
         {
@@ -28,7 +53,38 @@ namespace CSW305Proj.Controllers
             if (station == null) { 
                 return NotFound("StationId Not Found");
             }
-            return Ok(station);
+            return Ok(new {station.StationId, station.Location, station.Capacity});
+        }
+
+        [HttpGet("stations/{stationId}/available-bikes")]
+        public async Task<IActionResult> GetAvailableBikes(int stationId)
+        {
+            var station = await _context.BikeStations
+                .Include(s => s.Bikes)
+                .FirstOrDefaultAsync(s => s.StationId == stationId);
+
+            if (station == null)
+                return NotFound("Station not found");
+
+        
+              var availableBikes = station.Bikes
+                .Where(b => b.Status == "Available")
+                .Select(b => new
+                {
+                    bikeId = b.BikeId,
+                    price = b.Price
+                })
+                .ToList();
+
+             return Ok(new
+                    {
+                        stationId = station.StationId,
+                        stationName = station.StationName,
+                        availableBikesCount = availableBikes.Count,
+                        bikes = availableBikes
+                    });
+
+      
         }
         [HttpPost]
         public async Task <ActionResult<BikeStation>> CreateBikeStation(BikeStationDtos createBikeStationDto)

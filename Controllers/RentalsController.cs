@@ -1,4 +1,5 @@
-﻿using CSW305Proj.Data;
+﻿using Azure.Core;
+using CSW305Proj.Data;
 using CSW305Proj.DTOs;
 using CSW305Proj.Models;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +19,10 @@ namespace CSW305Proj.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateRental([FromBody] CreateRentalRequest request)
         {
+            var bike = await _context.Bikes.FindAsync(request.BikeId);
+            if (bike == null)
+                return NotFound("Bike not found.");
+            if (bike.Status != "Available") return BadRequest("Bike is not available for rent.");
             var rental = new Rental
             {
                 UserId = request.UserId,
@@ -26,8 +31,17 @@ namespace CSW305Proj.Controllers
                 DuedTime = request.DuedTime,
                 Status = "Ongoing"
             };
-
+            bike.Status = "Rented";     
             _context.Rentals.Add(rental);
+            await _context.SaveChangesAsync();
+            var notification = new Notifications
+            {
+                UserId = request.UserId,
+                Message = $"You have successfully rented bike {request.BikeId}!",
+                CreatedDate = DateTime.Now
+            };
+            _context.Notifications.Add(notification);
+
             await _context.SaveChangesAsync();
 
             return Ok(rental);
@@ -37,7 +51,28 @@ namespace CSW305Proj.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllRentals()
         {
-            var rentals = await _context.Rentals.ToListAsync();
+            var rentals = await _context.Rentals
+            .Select(r => new {
+                r.RentalId,
+                r.UserId,
+                r.BikeId,
+                r.StartTime,
+                r.DuedTime,
+                r.ReturnedTimme,
+                r.Status,
+                User = new
+                {
+                    r.User.UserId,
+                    r.User.FullName
+                },
+                Bike = new
+                {
+                    r.Bike.BikeId,
+                    r.Bike.Status,
+                    r.Bike.Price
+                }
+            })
+            .ToListAsync();
             return Ok(rentals);
         }
 
@@ -66,18 +101,30 @@ namespace CSW305Proj.Controllers
 
         // PUT: api/rental/return/id
         [HttpPut("return/{id}")]
-        public async Task<IActionResult> ReturnRental(int id)
+        public async Task<IActionResult> ReturnRental(int id, UpdateRequestRentalDtos updateRequest)
         {
             var rental = await _context.Rentals.FindAsync(id);
             if (rental == null)
                 return NotFound();
 
             rental.ReturnedTimme = DateTime.Now;
-            rental.Status = "Returned";
+            rental.Status = updateRequest.RentalStatus;
+            var bike = await _context.Bikes.FindAsync(rental.BikeId);   
+            bike.Status = updateRequest.BikeStatus; 
 
             await _context.SaveChangesAsync();
 
-            return Ok(rental);
+            var notification = new Notifications
+            {
+                UserId = updateRequest.UserId,
+                Message = $"You have successfully returned bike {updateRequest.BikeId}!",
+                CreatedDate = DateTime.Now
+            };
+            _context.Notifications.Add(notification);
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }

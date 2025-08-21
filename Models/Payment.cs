@@ -9,6 +9,8 @@ namespace CSW305Proj.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int PaymentID { get; set; }
+        [Required]
+        public int DiscountId { get; set; }
 
         [Required]
         public int UserID { get; set; }

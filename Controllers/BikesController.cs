@@ -27,6 +27,7 @@ namespace CSW305Proj.Controllers
                     Status = b.Status,
                     CreatedDate = b.CreatedDate,
                     UpdatedDate = b.UpdatedDate,
+                    Price = b.Price,    
                     BikeCategory = new BikeCategoryDtos
                     {
                         BikeCategoryName = b.BikeCategory.BikeCategoryName,
@@ -65,6 +66,7 @@ namespace CSW305Proj.Controllers
                 Status = bike.Status,
                 CreatedDate = bike.CreatedDate,
                 UpdatedDate = bike.UpdatedDate,
+                Price = bike.Price,
                 BikeCategory = new BikeCategoryDtos
                 {
                     BikeCategoryName = bike.BikeCategory.BikeCategoryName,
@@ -92,6 +94,9 @@ namespace CSW305Proj.Controllers
             {
                 return BadRequest("THe code of the bike existed");
             }
+            if (createdBikeDtos.BikeStationId <= 0) return BadRequest("The BikeStationId must be greater than 0");
+            if (createdBikeDtos.BikeCategoryId <= 0) return BadRequest("The BikeCategoryId must be greater than 0");
+            if(createdBikeDtos.Price <= 0) return BadRequest("The Price must be greater than 0");
             var bike = new Bike
             {
                 BikeCode = createdBikeDtos.BikeCode,

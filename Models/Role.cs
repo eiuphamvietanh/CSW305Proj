@@ -13,5 +13,7 @@ namespace CSW305Proj.Models
         public string RoleName { get; set; }
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public List<UserRole> UserRoles { get; set; } 
     }
 }

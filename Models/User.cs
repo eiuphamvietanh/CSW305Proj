@@ -1,8 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CSW305Proj.Models
 {
+    [Table("Users")]
     public class User
     {
         [Key]
@@ -32,7 +34,8 @@ namespace CSW305Proj.Models
         [Required]
         public int IdentityCard { get; set; }
 
-       
+        public List<Notifications> Notifications { get; set; }
+        public List<UserRole> UserRoles { get; set; }
         public List<Rental> Rentals { get; set; }
     }
 }
