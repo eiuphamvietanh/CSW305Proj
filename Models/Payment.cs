@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CSW305Proj.Models
 {
+    [Table("Payment")]
     public class Payment
     {
 

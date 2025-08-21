@@ -27,8 +27,7 @@ namespace CSW305Proj.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Notifications>> GetNotification(int id)
         {
-            var notification = await _context.Notifications.Include(n => n.User)
-                                                           .FirstOrDefaultAsync(n => n.NotificationId == id);
+            var notification = await _context.Notifications.FirstOrDefaultAsync(n => n.NotificationId == id);
 
             if (notification == null)
             {
