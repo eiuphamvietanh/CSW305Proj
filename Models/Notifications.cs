@@ -6,13 +6,15 @@ namespace CSW305Proj.Models
     [Table("Notifications")]
     public class Notifications
     {
-       [Key]
+
+
+        [Key]
        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
      public int NotificationId { get; set; }
      public int UserId { get; set; }
-     public string Message { get; set; }
+     public required string Message { get; set; }
      public DateTime CreatedDate { get; set; }
 
-     public User User { get; set; }
+     public required User User { get; set; }
     }
 }

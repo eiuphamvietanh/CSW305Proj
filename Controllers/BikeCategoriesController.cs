@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace CSW305Proj.Controllers
+namespace CSW305Proj.DTOs
 {
     [Route("api/[controller]")]
     [ApiController]

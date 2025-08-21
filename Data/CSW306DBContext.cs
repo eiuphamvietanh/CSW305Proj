@@ -11,6 +11,8 @@ namespace CSW305Proj.Data
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<BikeCategory> BikeCategories { get; set; }
+        public DbSet<Carousels> Carousels { get; set; }
+
         public DbSet<BikeStation> BikeStations { get; set; }
         public DbSet<Bike> Bikes { get; set; }
         public DbSet<Rental> Rentals { get; set; }
@@ -59,7 +61,6 @@ namespace CSW305Proj.Data
 
             modelBuilder.Entity<UserRole>()
                   .HasKey(ur => new { ur.UserId, ur.RoleId });
-
 
             modelBuilder.Entity<UserRole>()
                 .HasOne(ur => ur.User)

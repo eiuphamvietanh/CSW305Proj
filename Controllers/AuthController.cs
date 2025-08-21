@@ -11,7 +11,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace CSW305Proj.Controllers
+namespace CSW305Proj.DTOs
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -54,7 +54,7 @@ namespace CSW305Proj.Controllers
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"])); 
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[key: "JwtSettings:SecretKey"])); 
 
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

@@ -8,7 +8,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace CSW305Proj.Controllers
+namespace CSW305Proj.DTOs
 {
     [Route("api/[controller]")]
     [ApiController]
