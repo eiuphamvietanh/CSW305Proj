@@ -7,17 +7,55 @@ namespace CSW305Proj.Data
     {
        public CSW306DBContext(DbContextOptions options) : base (options) { 
        }
-        public DbSet <Users> Users { get; set; }
-        public DbSet<Customers> Customers { get; set; }
-
+        public DbSet <Role> Roles { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<BikeCategory> BikeCategories { get; set; }
+        public DbSet<BikeStation> BikeStations { get; set; }
+        public DbSet<Bike> Bikes { get; set; }
+        public DbSet<Rental> Rentals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Customers>()
-                .HasOne(c => c.User)
-                .WithOne(u => u.Customer)
-                .HasForeignKey<Users>(u => u.CustomerId);  
-        }
+
+            modelBuilder.Entity<Bike>()
+                .HasOne(b => b.BikeStation)
+                .WithMany(s => s.Bikes)
+                .HasForeignKey(b => b.BikeStationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Bike>()
+                .HasOne(b => b.BikeCategory)
+                .WithMany(c => c.Bikes)
+                .HasForeignKey(b => b.BikeCategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PaymentRental>()
+            .HasKey(pr => new { pr.PaymentId, pr.RentalId });
+
+            modelBuilder.Entity<PaymentRental>()
+                .HasOne(pr => pr.Payment)
+                .WithMany(p => p.PaymentRentals)
+                .HasForeignKey(pr => pr.PaymentId);
+
+            modelBuilder.Entity<PaymentRental>()
+                .HasOne(pr => pr.Rental)
+                .WithMany(r => r.PaymentRentals)
+                .HasForeignKey(pr => pr.RentalId);
+
+            modelBuilder.Entity<Rental>()
+                .HasOne(r => r.Bike)
+                .WithMany()  
+                .HasForeignKey(r => r.BikeId);
+
+            modelBuilder.Entity<Rental>()
+                .HasOne(r => r.User)
+                .WithMany(u => u.Rentals)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+                }
+
+
+
+
     }
 }

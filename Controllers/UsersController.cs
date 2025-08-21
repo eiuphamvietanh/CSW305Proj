@@ -1,8 +1,12 @@
 ﻿using CSW305Proj.Data;
 using CSW305Proj.DTOs;
 using CSW305Proj.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace CSW305Proj.Controllers
 {
@@ -10,6 +14,7 @@ namespace CSW305Proj.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+
         private readonly CSW306DBContext _context;
 
         public UsersController(CSW306DBContext context)
@@ -17,82 +22,75 @@ namespace CSW305Proj.Controllers
             _context = context;
         }
 
-       
-      
-        [HttpGet]
-        public async Task<List<UserDto>> GetUsers()
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserRegisterDtos request)
+
         {
-            return await _context.Users
-                .Select(u => new UserDto
-                {
-                    UserId = u.UserId,
-                    CustomerId = u.CustomerId,
-                    UserName = u.UserName,
-                    IsActive = u.IsActive,
-                    IsBlocked = u.IsBlocked,
-                    CreatedDate = u.CreatedDate
-                })
-                .ToListAsync();
+
+            if (await _context.Users.AnyAsync(u => u.UserName == request.UserName))
+                return BadRequest("Username already exists.");
+
+            var user = new User
+            {
+                UserName = request.UserName,
+                Password = HashPassword(request.Password),
+                IsActived = true,
+                IsBlocked = false,
+                CreatedDate = DateTime.UtcNow,
+                FullName = request.FullName,
+                Phone = request.Phone,
+                Address = request.Address,
+                IdentityCard = request.IdentityCard
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { user.UserId, user.UserName });
         }
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Users>> GetUser(int id)
+        public async Task<IActionResult> GetUser(int id)
         {
-            var user = await _context.Users.Include(u => u.Customer).FirstOrDefaultAsync(u => u.UserId == id);
+            var user = await _context.Users.Include(u => u.Rentals).FirstOrDefaultAsync(u => u.UserId == id);
 
-            if (user == null)
-                return NotFound();
+            if (user == null) return NotFound();
 
-            return Ok(user);
+            return Ok(new { user.UserId, user.UserName });
         }
 
-      
-        [HttpPost]
-        public async Task<ActionResult<Users>> PostUser(Users user)
+        [HttpGet("{name}")]
+        public async Task<IActionResult> GetUser(string name)
         {
-            user.CreatedDate = DateTime.Now; 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == name);
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
+            if (user == null) return NotFound();
+
+            return Ok(new { user.UserId, user.UserName });
         }
-
-       
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, Users user)
+        public async Task<IActionResult> UpdateUserById(int id, UserRegisterDtos request)
         {
-            if (id != user.UserId)
-                return BadRequest();
-
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == id);
+            if (request == null)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Users.Any(e => e.UserId == id))
-                    return NotFound();
-                else
-                    throw;
+                return BadRequest("CANNOT BE NULL");
             }
 
-            return NoContent();
+            if (user == null) return NotFound();
+
+            return Ok(new { user.UserId, user.UserName });
         }
 
-      
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return NotFound();
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-            return NoContent();
+
+        private string HashPassword(string password)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(password);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
         }
     }
 }
