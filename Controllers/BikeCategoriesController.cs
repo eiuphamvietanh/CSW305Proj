@@ -19,6 +19,7 @@ namespace CSW305Proj.DTOs
             _context = context;
         }
         [HttpGet]
+        [Authorize]
         public async Task <List<BikeCategoryDtosResult>> GetAllCategories()
         {
 
@@ -45,6 +46,7 @@ namespace CSW305Proj.DTOs
             
         }
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<BikeCategoryDtosResult>> GetBikeById(int id)
         {
             var bikeCategory = await _context.BikeCategories.FirstOrDefaultAsync(b => b.BikeCategoryId == id);
@@ -65,9 +67,9 @@ namespace CSW305Proj.DTOs
                 }).ToList()
             };
             
-            return Ok(bikeCategory);
+            return Ok(bikeCategory);    
         }
-      
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<BikeCategory>> CreateBikeCategory(BikeCategoryDtos createBikeCategoryDtos)
         {
@@ -97,6 +99,7 @@ namespace CSW305Proj.DTOs
 
         }
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<ActionResult<Role>> UpdateRole(int id, BikeCategoryDtos bikeCategoryDtos)
         {
 
@@ -126,7 +129,7 @@ namespace CSW305Proj.DTOs
             }
         }
 
-
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBikeCategory(int id)
         {

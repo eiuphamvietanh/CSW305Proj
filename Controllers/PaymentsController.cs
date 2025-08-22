@@ -1,5 +1,7 @@
 ﻿using CSW305Proj.Data;
+using CSW305Proj.DTOs;
 using CSW305Proj.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,17 +19,17 @@ namespace CSW305Proj.DTOs
             _context = context;
         }
 
-        
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreatePayment([FromBody] Payment payment)
+        public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentDtos createPaymentDtos)
         {
-            if (payment == null || payment.UserID <= 0)
+            if (createPaymentDtos == null || createPaymentDtos.UserId <= 0)
                 return BadRequest("Invalid payment request.");
 
            
             var rentals = await _context.Rentals
                 .Include(r => r.Bike)
-                .Where(r => r.UserId == payment.UserID && r.Status == "Returned")
+                .Where(r => r.UserId == createPaymentDtos.UserId && r.Status == "Returned")
                 .ToListAsync();
 
             if (!rentals.Any())
@@ -52,14 +54,12 @@ namespace CSW305Proj.DTOs
 
                 rental.Status = "Paid"; 
             }
-
-           
-            payment.BeforeAmount = totalBeforeAmount;
+            var BeforeAmount = totalBeforeAmount;
 
             decimal afterAmount = totalBeforeAmount;
-            if (payment.DiscountId > 0)
+            if (createPaymentDtos.DiscountId > 0)
             {
-                var discount = await _context.Discounts.FindAsync(payment.DiscountId);
+                var discount = await _context.Discounts.FindAsync(createPaymentDtos.DiscountId);
                 if (discount != null && discount.IsActive && DateTime.UtcNow >= discount.StartDate && DateTime.UtcNow <= discount.EndDate)
                 {
                     if (discount.DiscountType == 1)
@@ -72,8 +72,16 @@ namespace CSW305Proj.DTOs
                     }
                 }
             }
-            payment.AfterAmount = afterAmount; 
-            payment.CreatedDate = DateTime.UtcNow;
+             var payment = new Payment {
+                 UserID = createPaymentDtos.UserId,
+                 DiscountId = createPaymentDtos.DiscountId,
+                 BeforeAmount = totalBeforeAmount,
+                 AfterAmount = afterAmount,
+                 Method = createPaymentDtos.Method,
+                 Note = createPaymentDtos.Note,
+                 CreatedDate = DateTime.UtcNow,
+             };   
+
 
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();

@@ -1,5 +1,6 @@
 ﻿using CSW305Proj.Data;
 using CSW305Proj.Models;
+using CSW305Proj.DTOs;  
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -42,14 +43,28 @@ public class DiscountsController : ControllerBase
 
    
     [HttpPost]
-    public async Task<ActionResult<Discount>> PostDiscount(Discount discount)
+    public async Task<ActionResult<Discount>> PostDiscount(DiscountDto createDiscountDto)
     {
         
+        if (createDiscountDto == null)
+        {
+            return BadRequest("Invalid discount data.");
+        }
+        var discount = new Discount
+        {
+            DiscountCode = createDiscountDto.DiscountCode,
+            Description = createDiscountDto.Description,
+            StartDate = createDiscountDto.StartDate,
+            EndDate = createDiscountDto.EndDate,
+            IsActive = createDiscountDto.IsActive,
+            Value = createDiscountDto.Value,
+            DiscountType = createDiscountDto.DiscountType
+        };  
         _context.Discounts.Add(discount);
         await _context.SaveChangesAsync();
 
        
-        return CreatedAtAction(nameof(GetDiscount), new { id = discount.DiscountId }, discount);
+        return CreatedAtAction(nameof(GetDiscount), new { id = discount.DiscountId }, createDiscountDto);
     }
 
     
