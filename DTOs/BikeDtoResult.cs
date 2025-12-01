@@ -4,8 +4,6 @@ namespace CSW305Proj.DTOs
 {
     public class BikeDtoResult
     {
-
-
         public int BikeId { get; set; }
         public string BikeCode { get; set; }
         public string BikeName { get; set; }
